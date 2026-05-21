@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BGV Platform — API Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:        #0d0f14;
+      --bg2:       #13161d;
+      --bg3:       #1a1e28;
+      --border:    #252a37;
+      --border2:   #2e3545;
+      --text:      #e2e6f0;
+      --muted:     #7a8299;
+      --dim:       #4a5168;
+      --accent:    #4f8ef7;
+      --accent2:   #2563eb;
+      --green:     #34d399;
+      --green-bg:  rgba(52,211,153,0.1);
+      --red:       #f87171;
+      --red-bg:    rgba(248,113,113,0.1);
+      --yellow:    #fbbf24;
+      --yellow-bg: rgba(251,191,36,0.1);
+      --purple:    #a78bfa;
+      --purple-bg: rgba(167,139,250,0.1);
+      --orange:    #fb923c;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Sora', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ───────────────────────────────── */
+    .sidebar {
+      width: 260px; flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: fixed; top: 0; left: 0; bottom: 0;
+      overflow-y: auto; overflow-x: hidden;
+      z-index: 100;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo .icon { font-size: 22px; }
+    .sidebar-logo .name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .sidebar-logo .ver  { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); background: var(--bg3); border: 1px solid var(--border2); padding: 1px 6px; border-radius: 3px; margin-top: 1px; }
+
+    .sidebar-section { padding: 20px 16px 4px; }
+    .sidebar-section-label {
+      font-size: 9.5px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--dim); padding: 0 6px; margin-bottom: 6px;
+    }
+
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 6px;
+      text-decoration: none; color: var(--muted);
+      font-size: 13px; font-weight: 500;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .sidebar-link:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-link.active { background: rgba(79,142,247,0.12); color: var(--accent); }
+    .sidebar-link .method-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; font-weight: 600;
+      padding: 1px 5px; border-radius: 3px;
+      margin-left: auto; flex-shrink: 0;
+    }
+    .pill-post   { background: rgba(52,211,153,0.15); color: var(--green); }
+    .pill-get    { background: rgba(79,142,247,0.15); color: var(--accent); }
+    .pill-put    { background: rgba(251,191,36,0.15); color: var(--yellow); }
+    .pill-delete { background: rgba(248,113,113,0.15); color: var(--red); }
+
+    /* ── MAIN ──────────────────────────────────── */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      max-width: 100%;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(13,15,20,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .topbar h1 { font-size: 15px; font-weight: 600; color: var(--text); }
+    .topbar .base-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--muted);
+      background: var(--bg3); border: 1px solid var(--border2);
+      padding: 4px 10px; border-radius: 5px;
+    }
+    .topbar .badge {
+      margin-left: auto; font-size: 11px; font-weight: 600;
+      color: var(--green); background: var(--green-bg);
+      border: 1px solid rgba(52,211,153,0.25);
+      padding: 4px 10px; border-radius: 20px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .topbar .badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); display: inline-block;
+    }
+
+    /* CONTENT */
+    .content { padding: 48px 40px; max-width: 900px; }
+
+    /* HERO */
+    .hero {
+      margin-bottom: 56px;
+      padding: 40px;
+      background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle at center, rgba(79,142,247,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h2 { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 10px; line-height: 1.3; }
+    .hero p  { font-size: 14px; color: var(--muted); max-width: 560px; line-height: 1.8; }
+    .hero-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .chip {
+      font-size: 11px; font-weight: 500; padding: 5px 12px;
+      border-radius: 20px; border: 1px solid var(--border2);
+      color: var(--muted); background: var(--bg);
+    }
+
+    /* SECTION */
+    section { margin-bottom: 64px; scroll-margin-top: 80px; }
+    section > h2 {
+      font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 24px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ENDPOINT CARD */
+    .endpoint {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .endpoint-header {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .endpoint-header:hover { background: var(--bg3); }
+
+    .method {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600; padding: 4px 10px;
+      border-radius: 5px; min-width: 52px; text-align: center;
+    }
+    .m-get    { background: rgba(79,142,247,0.15);  color: var(--accent);  border: 1px solid rgba(79,142,247,0.25); }
+    .m-post   { background: rgba(52,211,153,0.12);  color: var(--green);   border: 1px solid rgba(52,211,153,0.25); }
+    .m-put    { background: rgba(251,191,36,0.12);  color: var(--yellow);  border: 1px solid rgba(251,191,36,0.25); }
+    .m-delete { background: rgba(248,113,113,0.12); color: var(--red);     border: 1px solid rgba(248,113,113,0.25); }
+
+    .endpoint-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px; font-weight: 500; color: var(--text);
+    }
+    .endpoint-path .param { color: var(--orange); }
+    .endpoint-desc { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+    .auth-required {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+      color: var(--yellow); background: var(--yellow-bg);
+      border: 1px solid rgba(251,191,36,0.25);
+      padding: 3px 8px; border-radius: 4px;
+    }
+
+    .endpoint-body { padding: 20px; }
+
+    /* PARAMS TABLE */
+    .params-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; margin-top: 16px; }
+    .params-label:first-child { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
+    th {
+      text-align: left; padding: 8px 12px;
+      font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--dim); background: var(--bg3); border-bottom: 1px solid var(--border2);
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .td-name { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent); }
+    .td-type { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--purple); }
+    .td-req  { font-size: 10px; font-weight: 600; }
+    .req-yes { color: var(--red); }
+    .req-no  { color: var(--dim); }
+    .td-desc { font-size: 12.5px; color: var(--muted); }
+
+    /* CODE BLOCK */
+    .code-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; margin-top: 16px; }
+    .code-block {
+      background: #080a0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-block .s  { color: #89ddb8; } /* string */
+    .code-block .n  { color: #79c0ff; } /* number/bool */
+    .code-block .k  { color: #ff9f6b; } /* key */
+    .code-block .c  { color: var(--muted); font-style: italic; } /* comment */
+    .code-block .h  { color: #f2cc60; } /* http header */
+    .code-block .u  { color: var(--accent); } /* url */
+    .code-block .e  { color: var(--red); }   /* error */
+
+    /* RESPONSE STATUS */
+    .responses { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .response-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .response-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .status-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+    }
+    .sc-2xx { background: var(--green-bg); color: var(--green); }
+    .sc-4xx { background: var(--red-bg);   color: var(--red);   }
+    .sc-5xx { background: rgba(248,113,113,0.08); color: #ff6b6b; }
+    .response-desc { font-size: 12px; color: var(--muted); }
+
+    /* INFO BOXES */
+    .info-box {
+      border-radius: 8px; padding: 14px 16px;
+      font-size: 13px; line-height: 1.7; margin-bottom: 12px;
+      display: flex; gap: 10px;
+    }
+    .info-box .ib-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .info-box.note   { background: rgba(79,142,247,0.08);  border: 1px solid rgba(79,142,247,0.2); color: #93b4f5; }
+    .info-box.warn   { background: var(--yellow-bg); border: 1px solid rgba(251,191,36,0.25); color: #d4a017; }
+    .info-box.danger { background: var(--red-bg);    border: 1px solid rgba(248,113,113,0.25); color: #e57373; }
+    .info-box.success{ background: var(--green-bg);  border: 1px solid rgba(52,211,153,0.25); color: #4caf8a; }
+
+    /* OVERVIEW TABLE */
+    .overview-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+    .overview-table thead tr { background: var(--bg3); }
+    .overview-table th { padding: 10px 14px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); text-align: left; border-bottom: 1px solid var(--border2); }
+    .overview-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+    .overview-table tr:last-child td { border-bottom: none; }
+    .overview-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .main { margin-left: 0; }
+      .content { padding: 24px 20px; }
+      .topbar { padding: 12px 20px; }
+      .endpoint-desc { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="icon">🛡</span>
+    <div>
+      <div class="name">BGV Platform</div>
+      <div class="ver">v1.0.0</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Overview</div>
+    <a href="#overview" class="sidebar-link active">📖 Introduction</a>
+    <a href="#auth-header" class="sidebar-link">🔐 Authentication</a>
+    <a href="#errors" class="sidebar-link">⚠️ Error Handling</a>
+    <a href="#ratelimit" class="sidebar-link">🚦 Rate Limiting</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Authentication</div>
+    <a href="#auth-register" class="sidebar-link">Register <span class="method-pill pill-post">POST</span></a>
+    <a href="#auth-login" class="sidebar-link">Login <span class="method-pill pill-post">POST</span></a>
+    <a href="#auth-me" class="sidebar-link">Get Me <span class="method-pill pill-get">GET</span></a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Candidates</div>
+    <a href="#cand-stats" class="sidebar-link">Get Stats <span class="method-pill pill-get">GET</span></a>
+    <a href="#cand-list" class="sidebar-link">List All <span class="method-pill pill-get">GET</span></a>
+    <a href="#cand-create" class="sidebar-link">Create <span class="method-pill pill-post">POST</span></a>
+    <a href="#cand-get" class="sidebar-link">Get by ID <span class="method-pill pill-get">GET</span></a>
+    <a href="#cand-update" class="sidebar-link">Update <span class="method-pill pill-put">PUT</span></a>
+    <a href="#cand-delete" class="sidebar-link">Delete <span class="method-pill pill-delete">DEL</span></a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Verifications</div>
+    <a href="#verif-start" class="sidebar-link">Start Verification <span class="method-pill pill-post">POST</span></a>
+    <a href="#verif-logs" class="sidebar-link">Get Logs <span class="method-pill pill-get">GET</span></a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Reports</div>
+    <a href="#report-download" class="sidebar-link">Download PDF <span class="method-pill pill-get">GET</span></a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Mock APIs</div>
+    <a href="#mock-aadhaar" class="sidebar-link">Aadhaar Verify <span class="method-pill pill-post">POST</span></a>
+    <a href="#mock-pan" class="sidebar-link">PAN Verify <span class="method-pill pill-post">POST</span></a>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+  <div class="topbar">
+    <h1>API Reference</h1>
+    <span class="base-url">http://localhost:5000</span>
+    <span class="badge">REST API</span>
+  </div>
+
+  <div class="content">
+
+    <!-- ── HERO ── -->
+    <div class="hero">
+      <h2>BGV Platform API</h2>
+      <p>Complete REST API reference for the Background Verification Platform. Authenticate users, manage candidates, trigger Aadhaar &amp; PAN verifications, and generate downloadable PDF reports.</p>
+      <div class="hero-chips">
+        <span class="chip">REST / JSON</span>
+        <span class="chip">JWT Auth</span>
+        <span class="chip">Rate Limited</span>
+        <span class="chip">v1.0.0</span>
+        <span class="chip">Node.js + Express</span>
+        <span class="chip">MongoDB</span>
+      </div>
+    </div>
+
+    <!-- ═══ OVERVIEW ═══ -->
+    <section id="overview">
+      <h2>Overview</h2>
+
+      <table class="overview-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Base URL (Dev)</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">http://localhost:5000</td></tr>
+          <tr><td>Base URL (Prod)</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">https://your-app.onrender.com</td></tr>
+          <tr><td>API Prefix</td><td style="font-family:'JetBrains Mono',monospace">/api</td></tr>
+          <tr><td>Content Type</td><td style="font-family:'JetBrains Mono',monospace">application/json</td></tr>
+          <tr><td>Authentication</td><td>JWT Bearer Token</td></tr>
+          <tr><td>Date Format</td><td>ISO 8601 — <code style="font-family:'JetBrains Mono',monospace">YYYY-MM-DDTHH:mm:ss.sssZ</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box success">
+        <span class="ib-icon">✅</span>
+        <div>All successful responses return <code style="font-family:'JetBrains Mono',monospace">{ "success": true, "data": { ... } }</code>. Error responses return <code style="font-family:'JetBrains Mono',monospace">{ "success": false, "message": "..." }</code>.</div>
+      </div>
+    </section>
+
+    <!-- ═══ AUTHENTICATION SCHEME ═══ -->
+    <section id="auth-header">
+      <h2>Authentication</h2>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">All protected endpoints require a JWT Bearer token in the Authorization header.</p>
+      <div class="code-label">Authorization Header</div>
+      <div class="code-block"><span class="h">Authorization:</span> Bearer <span class="s">&lt;your_jwt_token&gt;</span></div>
+      <div class="info-box note" style="margin-top:14px">
+        <span class="ib-icon">ℹ️</span>
+        <div>Tokens expire after <strong>7 days</strong> by default (configurable via <code style="font-family:'JetBrains Mono',monospace">JWT_EXPIRES_IN</code>). After expiry, re-authenticate via <code>/api/auth/login</code>.</div>
+      </div>
+    </section>
+
+    <!-- ═══ ERRORS ═══ -->
+    <section id="errors">
+      <h2>Error Handling</h2>
+      <table class="overview-table">
+        <thead><tr><th>Status Code</th><th>Meaning</th><th>Common Cause</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--green)">200</td><td>OK</td><td>Request succeeded</td></tr>
+          <tr><td style="color:var(--green)">201</td><td>Created</td><td>Resource created successfully</td></tr>
+          <tr><td style="color:var(--red)">400</td><td>Bad Request</td><td>Validation failed, invalid format</td></tr>
+          <tr><td style="color:var(--red)">401</td><td>Unauthorized</td><td>Missing or expired JWT</td></tr>
+          <tr><td style="color:var(--red)">404</td><td>Not Found</td><td>Resource doesn't exist or not yours</td></tr>
+          <tr><td style="color:var(--yellow)">409</td><td>Conflict</td><td>Email already registered</td></tr>
+          <tr><td style="color:var(--yellow)">429</td><td>Too Many Requests</td><td>Rate limit exceeded</td></tr>
+          <tr><td style="color:var(--red)">500</td><td>Server Error</td><td>Unexpected internal error</td></tr>
+        </tbody>
+      </table>
+      <div class="code-label">Error Response Shape</div>
+      <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">false</span>,
+  <span class="k">"message"</span>: <span class="s">"Validation failed"</span>,
+  <span class="k">"errors"</span>: [                         <span class="c">// only on 400 validation errors</span>
+    { <span class="k">"field"</span>: <span class="s">"aadhaarNumber"</span>, <span class="k">"message"</span>: <span class="s">"Must be exactly 12 digits"</span> }
+  ]
+}</div>
+    </section>
+
+    <!-- ═══ RATE LIMIT ═══ -->
+    <section id="ratelimit">
+      <h2>Rate Limiting</h2>
+      <table class="overview-table">
+        <thead><tr><th>Endpoint Group</th><th>Limit</th><th>Window</th></tr></thead>
+        <tbody>
+          <tr><td>Auth (<code style="font-family:'JetBrains Mono',monospace">/api/auth/*</code>)</td><td style="color:var(--red)">20 requests</td><td>15 minutes</td></tr>
+          <tr><td>All other APIs</td><td style="color:var(--yellow)">200 requests</td><td>15 minutes</td></tr>
+        </tbody>
+      </table>
+      <div class="info-box warn">
+        <span class="ib-icon">⚠️</span>
+        <div>When exceeded, the API returns HTTP <code style="font-family:'JetBrains Mono',monospace">429 Too Many Requests</code> with message <em>"Too many requests. Please try again later."</em></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ AUTH ENDPOINTS ═══════════════════════════════════ -->
+    <section id="auth-endpoints">
+      <h2>Authentication Endpoints</h2>
+
+      <!-- REGISTER -->
+      <div class="endpoint" id="auth-register">
+        <div class="endpoint-header">
+          <span class="method m-post">POST</span>
+          <span class="endpoint-path">/api/auth/register</span>
+          <span class="endpoint-desc">Create a new organization account</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="info-box note"><span class="ib-icon">ℹ️</span><div>No authentication required. Returns a JWT token on success.</div></div>
+
+          <div class="params-label">Request Body</div>
+          <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">name</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">2–100 characters</td></tr>
+              <tr><td class="td-name">email</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Valid email format, unique</td></tr>
+              <tr><td class="td-name">password</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Min 8 chars, 1 uppercase, 1 number</td></tr>
+            </tbody>
+          </table>
+
+          <div class="code-label">Request Example</div>
+          <div class="code-block">POST /api/auth/register
+<span class="h">Content-Type:</span> application/json
+
+{
+  <span class="k">"name"</span>:     <span class="s">"Admin User"</span>,
+  <span class="k">"email"</span>:    <span class="s">"admin@bgv.com"</span>,
+  <span class="k">"password"</span>: <span class="s">"Admin1234"</span>
+}</div>
+
+          <div class="responses">
+            <div class="response-item">
+              <div class="response-header">
+                <span class="status-code sc-2xx">201 Created</span>
+                <span class="response-desc">Account created, JWT returned</span>
+              </div>
+              <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"message"</span>: <span class="s">"Account created successfully."</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"token"</span>: <span class="s">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NWE..."</span>,
+    <span class="k">"user"</span>: {
+      <span class="k">"id"</span>:        <span class="s">"65a1b2c3d4e5f6a7b8c9d0e1"</span>,
+      <span class="k">"name"</span>:      <span class="s">"Admin User"</span>,
+      <span class="k">"email"</span>:     <span class="s">"admin@bgv.com"</span>,
+      <span class="k">"createdAt"</span>: <span class="s">"2026-05-21T09:00:00.000Z"</span>
+    }
+  }
+}</div>
+            </div>
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-4xx">409 Conflict</span><span class="response-desc">Email already registered</span></div>
+              <div class="code-block">{ <span class="k">"success"</span>: <span class="n">false</span>, <span class="k">"message"</span>: <span class="s">"Email already registered."</span> }</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="endpoint" id="auth-login">
+        <div class="endpoint-header">
+          <span class="method m-post">POST</span>
+          <span class="endpoint-path">/api/auth/login</span>
+          <span class="endpoint-desc">Authenticate and receive JWT</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="params-label">Request Body</div>
+          <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">email</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Registered email</td></tr>
+              <tr><td class="td-name">password</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Account password</td></tr>
+            </tbody>
+          </table>
+          <div class="code-label">Request Example</div>
+          <div class="code-block">POST /api/auth/login
+
+{ <span class="k">"email"</span>: <span class="s">"admin@bgv.com"</span>, <span class="k">"password"</span>: <span class="s">"Admin1234"</span> }</div>
+
+          <div class="responses">
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-2xx">200 OK</span><span class="response-desc">Login successful</span></div>
+              <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"message"</span>: <span class="s">"Logged in successfully."</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"token"</span>: <span class="s">"eyJhbGci..."</span>,
+    <span class="k">"user"</span>: { <span class="k">"id"</span>: <span class="s">"..."</span>, <span class="k">"name"</span>: <span class="s">"Admin User"</span>, <span class="k">"email"</span>: <span class="s">"admin@bgv.com"</span> }
+  }
+}</div>
+            </div>
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-4xx">401 Unauthorized</span><span class="response-desc">Wrong credentials</span></div>
+              <div class="code-block">{ <span class="k">"success"</span>: <span class="n">false</span>, <span class="k">"message"</span>: <span class="s">"Invalid email or password."</span> }</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET ME -->
+      <div class="endpoint" id="auth-me">
+        <div class="endpoint-header">
+          <span class="method m-get">GET</span>
+          <span class="endpoint-path">/api/auth/me</span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Get current user profile</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Response 200</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"user"</span>: { <span class="k">"_id"</span>: <span class="s">"..."</span>, <span class="k">"name"</span>: <span class="s">"Admin User"</span>, <span class="k">"email"</span>: <span class="s">"admin@bgv.com"</span>, <span class="k">"createdAt"</span>: <span class="s">"..."</span> }
+  }
+}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ CANDIDATE ENDPOINTS ═══════════════════════════════════ -->
+    <section id="candidate-endpoints">
+      <h2>Candidate Endpoints</h2>
+      <div class="info-box note"><span class="ib-icon">🔐</span><div>All candidate endpoints require JWT authentication. Users can only access their own candidates.</div></div>
+
+      <!-- STATS -->
+      <div class="endpoint" id="cand-stats">
+        <div class="endpoint-header">
+          <span class="method m-get">GET</span>
+          <span class="endpoint-path">/api/candidates/stats</span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Dashboard statistics</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Response 200</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"stats"</span>: {
+      <span class="k">"total"</span>:    <span class="n">42</span>,
+      <span class="k">"verified"</span>: <span class="n">28</span>,
+      <span class="k">"failed"</span>:   <span class="n">6</span>,
+      <span class="k">"partial"</span>:  <span class="n">4</span>,
+      <span class="k">"pending"</span>:  <span class="n">4</span>
+    }
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- LIST -->
+      <div class="endpoint" id="cand-list">
+        <div class="endpoint-header">
+          <span class="method m-get">GET</span>
+          <span class="endpoint-path">/api/candidates</span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">List candidates with search, filter, pagination</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="params-label">Query Parameters</div>
+          <table>
+            <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">page</td><td class="td-type">number</td><td class="td-req req-no">No</td><td class="td-desc">Page number, default: 1</td></tr>
+              <tr><td class="td-name">limit</td><td class="td-type">number</td><td class="td-req req-no">No</td><td class="td-desc">Results per page, default: 10</td></tr>
+              <tr><td class="td-name">search</td><td class="td-type">string</td><td class="td-req req-no">No</td><td class="td-desc">Search by name, email, or phone</td></tr>
+              <tr><td class="td-name">status</td><td class="td-type">string</td><td class="td-req req-no">No</td><td class="td-desc">Filter: PENDING | VERIFIED | FAILED | PARTIAL</td></tr>
+            </tbody>
+          </table>
+          <div class="code-label">Request Example</div>
+          <div class="code-block">GET /api/candidates?page=1&limit=10&status=VERIFIED&search=john
+<span class="h">Authorization:</span> Bearer <span class="s">&lt;token&gt;</span></div>
+          <div class="code-label">Response 200</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"candidates"</span>: [
+      {
+        <span class="k">"_id"</span>:       <span class="s">"65b1c2d3e4f5a6b7c8d9e0f1"</span>,
+        <span class="k">"fullName"</span>:  <span class="s">"John Doe"</span>,
+        <span class="k">"email"</span>:     <span class="s">"john.doe@example.com"</span>,
+        <span class="k">"phone"</span>:     <span class="s">"9876543210"</span>,
+        <span class="k">"panNumber"</span>: <span class="s">"ABCDE1234F"</span>,
+        <span class="k">"dob"</span>:       <span class="s">"1995-06-15T00:00:00.000Z"</span>,
+        <span class="k">"address"</span>:   <span class="s">"123 MG Road, Bengaluru"</span>,
+        <span class="k">"status"</span>:    <span class="s">"VERIFIED"</span>,
+        <span class="k">"createdAt"</span>: <span class="s">"2026-05-21T09:00:00.000Z"</span>
+      }
+    ],
+    <span class="k">"pagination"</span>: {
+      <span class="k">"total"</span>: <span class="n">28</span>, <span class="k">"page"</span>: <span class="n">1</span>, <span class="k">"limit"</span>: <span class="n">10</span>, <span class="k">"pages"</span>: <span class="n">3</span>
+    }
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- CREATE -->
+      <div class="endpoint" id="cand-create">
+        <div class="endpoint-header">
+          <span class="method m-post">POST</span>
+          <span class="endpoint-path">/api/candidates</span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Create a new candidate</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="params-label">Request Body</div>
+          <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">fullName</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">2–150 characters</td></tr>
+              <tr><td class="td-name">email</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Valid email format</td></tr>
+              <tr><td class="td-name">phone</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">10-digit Indian mobile (starts with 6–9)</td></tr>
+              <tr><td class="td-name">aadhaarNumber</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Exactly 12 numeric digits</td></tr>
+              <tr><td class="td-name">panNumber</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Format: ABCDE1234F (regex: <code style="font-family:'JetBrains Mono',monospace">/^[A-Z]{5}[0-9]{4}[A-Z]$/</code>)</td></tr>
+              <tr><td class="td-name">dob</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">ISO 8601 date, candidate must be ≥18 years</td></tr>
+              <tr><td class="td-name">address</td><td class="td-type">string</td><td class="td-req req-yes">Yes</td><td class="td-desc">Max 500 characters</td></tr>
+            </tbody>
+          </table>
+          <div class="code-label">Request Example</div>
+          <div class="code-block">POST /api/candidates
+<span class="h">Authorization:</span> Bearer <span class="s">&lt;token&gt;</span>
+
+{
+  <span class="k">"fullName"</span>:      <span class="s">"John Doe"</span>,
+  <span class="k">"email"</span>:         <span class="s">"john.doe@example.com"</span>,
+  <span class="k">"phone"</span>:         <span class="s">"9876543210"</span>,
+  <span class="k">"aadhaarNumber"</span>: <span class="s">"123456789012"</span>,
+  <span class="k">"panNumber"</span>:     <span class="s">"ABCDE1234F"</span>,
+  <span class="k">"dob"</span>:           <span class="s">"1995-06-15"</span>,
+  <span class="k">"address"</span>:       <span class="s">"123 MG Road, Koramangala, Bengaluru, Karnataka 560034"</span>
+}</div>
+          <div class="responses">
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-2xx">201 Created</span></div>
+              <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"message"</span>: <span class="s">"Candidate created successfully."</span>,
+  <span class="k">"data"</span>: { <span class="k">"candidate"</span>: { <span class="k">"_id"</span>: <span class="s">"65b1..."</span>, <span class="k">"status"</span>: <span class="s">"PENDING"</span>, ... } }
+}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET BY ID -->
+      <div class="endpoint" id="cand-get">
+        <div class="endpoint-header">
+          <span class="method m-get">GET</span>
+          <span class="endpoint-path">/api/candidates/<span class="param">:id</span></span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Get candidate + verification logs</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="info-box note"><span class="ib-icon">ℹ️</span><div>Aadhaar is returned masked as <code style="font-family:'JetBrains Mono',monospace">XXXX-XXXX-1234</code>. Raw number is never exposed.</div></div>
+          <div class="code-label">Response 200</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"candidate"</span>: {
+      <span class="k">"_id"</span>:            <span class="s">"65b1c2d3e4f5a6b7c8d9e0f1"</span>,
+      <span class="k">"fullName"</span>:       <span class="s">"John Doe"</span>,
+      <span class="k">"email"</span>:          <span class="s">"john.doe@example.com"</span>,
+      <span class="k">"phone"</span>:          <span class="s">"9876543210"</span>,
+      <span class="k">"aadhaarNumber"</span>:  <span class="s">"XXXX-XXXX-9012"</span>,
+      <span class="k">"panNumber"</span>:      <span class="s">"ABCDE1234F"</span>,
+      <span class="k">"dob"</span>:            <span class="s">"1995-06-15T00:00:00.000Z"</span>,
+      <span class="k">"address"</span>:        <span class="s">"123 MG Road, Bengaluru"</span>,
+      <span class="k">"status"</span>:         <span class="s">"VERIFIED"</span>,
+      <span class="k">"maskedAadhaar"</span>:  <span class="s">"XXXX-XXXX-9012"</span>,
+      <span class="k">"verificationLogs"</span>: [
+        {
+          <span class="k">"verificationType"</span>:   <span class="s">"AADHAAR"</span>,
+          <span class="k">"verificationStatus"</span>: <span class="s">"verified"</span>,
+          <span class="k">"verifiedAt"</span>:         <span class="s">"2026-05-21T09:00:12.000Z"</span>,
+          <span class="k">"responsePayload"</span>:    { <span class="k">"status"</span>: <span class="s">"verified"</span>, <span class="k">"nameMatch"</span>: <span class="n">true</span>, <span class="k">"dobMatch"</span>: <span class="n">true</span> }
+        }
+      ]
+    }
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- UPDATE -->
+      <div class="endpoint" id="cand-update">
+        <div class="endpoint-header">
+          <span class="method m-put">PUT</span>
+          <span class="endpoint-path">/api/candidates/<span class="param">:id</span></span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Update candidate (PENDING status only)</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="info-box warn"><span class="ib-icon">⚠️</span><div>Editing is only allowed when candidate status is <code style="font-family:'JetBrains Mono',monospace">PENDING</code>. Returns <code>400</code> after verification has started.</div></div>
+          <div class="code-label">Same body fields as POST /api/candidates</div>
+          <div class="responses">
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-2xx">200 OK</span></div>
+              <div class="code-block">{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"Candidate updated."</span>, <span class="k">"data"</span>: { <span class="k">"candidate"</span>: { ... } } }</div>
+            </div>
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-4xx">400 Bad Request</span></div>
+              <div class="code-block">{ <span class="k">"success"</span>: <span class="n">false</span>, <span class="k">"message"</span>: <span class="s">"Cannot edit candidate after verification has started."</span> }</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELETE -->
+      <div class="endpoint" id="cand-delete">
+        <div class="endpoint-header">
+          <span class="method m-delete">DELETE</span>
+          <span class="endpoint-path">/api/candidates/<span class="param">:id</span></span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Delete candidate + all verification logs</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="info-box danger"><span class="ib-icon">🗑</span><div>This action is permanent and cascades — all associated <code>VerificationLog</code> records are also deleted.</div></div>
+          <div class="responses">
+            <div class="response-item">
+              <div class="response-header"><span class="status-code sc-2xx">200 OK</span></div>
+              <div class="code-block">{ <span class="k">"success"</span>: <span class="n">true</span>, <span class="k">"message"</span>: <span class="s">"Candidate deleted successfully."</span> }</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ VERIFICATION ENDPOINTS ═══════════════════════════════════ -->
+    <section id="verification-endpoints">
+      <h2>Verification Endpoints</h2>
+
+      <!-- START -->
+      <div class="endpoint" id="verif-start">
+        <div class="endpoint-header">
+          <span class="method m-post">POST</span>
+          <span class="endpoint-path">/api/verifications/<span class="param">:id</span>/start</span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Run Aadhaar + PAN verification</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="info-box note"><span class="ib-icon">ℹ️</span><div>No request body needed. The backend fetches candidate data and calls Aadhaar + PAN APIs automatically. Returns <code>400</code> if already <code>VERIFIED</code>.</div></div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;"><strong style="color:var(--text)">Status Logic:</strong> Both pass → <code style="color:var(--green)">VERIFIED</code> &nbsp;|&nbsp; Both fail → <code style="color:var(--red)">FAILED</code> &nbsp;|&nbsp; One passes → <code style="color:var(--yellow)">PARTIAL</code></p>
+          <div class="code-label">Response 200 — VERIFIED</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"message"</span>: <span class="s">"Verification complete. Status: VERIFIED"</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"overallStatus"</span>: <span class="s">"VERIFIED"</span>,
+    <span class="k">"aadhaar"</span>: {
+      <span class="k">"status"</span>: <span class="s">"verified"</span>,
+      <span class="k">"result"</span>: {
+        <span class="k">"status"</span>:      <span class="s">"verified"</span>,
+        <span class="k">"nameMatch"</span>:  <span class="n">true</span>,
+        <span class="k">"dobMatch"</span>:   <span class="n">true</span>,
+        <span class="k">"message"</span>:    <span class="s">"Aadhaar verified successfully"</span>,
+        <span class="k">"verifiedAt"</span>: <span class="s">"2026-05-21T09:00:12.000Z"</span>,
+        <span class="k">"referenceId"</span>:<span class="s">"AADHAAR-1716286212000"</span>
+      }
+    },
+    <span class="k">"pan"</span>: {
+      <span class="k">"status"</span>: <span class="s">"verified"</span>,
+      <span class="k">"result"</span>: {
+        <span class="k">"status"</span>:      <span class="s">"verified"</span>,
+        <span class="k">"panStatus"</span>:  <span class="s">"active"</span>,
+        <span class="k">"message"</span>:    <span class="s">"PAN verified successfully"</span>,
+        <span class="k">"verifiedAt"</span>: <span class="s">"2026-05-21T09:00:13.600Z"</span>,
+        <span class="k">"referenceId"</span>:<span class="s">"PAN-1716286213600"</span>
+      }
+    }
+  }
+}</div>
+          <div class="code-label">Response 200 — FAILED</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"message"</span>: <span class="s">"Verification complete. Status: FAILED"</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"overallStatus"</span>: <span class="s">"FAILED"</span>,
+    <span class="k">"aadhaar"</span>: { <span class="k">"status"</span>: <span class="s">"failed"</span>, <span class="k">"result"</span>: { <span class="k">"message"</span>: <span class="s">"Aadhaar verification failed: Record not found"</span>, <span class="k">"errorCode"</span>: <span class="s">"RECORD_NOT_FOUND"</span> } },
+    <span class="k">"pan"</span>:    { <span class="k">"status"</span>: <span class="s">"failed"</span>, <span class="k">"result"</span>: { <span class="k">"message"</span>: <span class="s">"PAN is inactive or deactivated"</span>, <span class="k">"errorCode"</span>: <span class="s">"PAN_INACTIVE"</span> } }
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="endpoint" id="verif-logs">
+        <div class="endpoint-header">
+          <span class="method m-get">GET</span>
+          <span class="endpoint-path">/api/verifications/<span class="param">:id</span>/logs</span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Retrieve all verification history for a candidate</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Response 200</div>
+          <div class="code-block">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"data"</span>: {
+    <span class="k">"logs"</span>: [
+      {
+        <span class="k">"_id"</span>:                <span class="s">"65c1d2e3f4a5b6c7d8e9f0a1"</span>,
+        <span class="k">"candidateId"</span>:       <span class="s">"65b1c2d3e4f5a6b7c8d9e0f1"</span>,
+        <span class="k">"verificationType"</span>:  <span class="s">"AADHAAR"</span>,
+        <span class="k">"verificationStatus"</span>:<span class="s">"verified"</span>,
+        <span class="k">"requestPayload"</span>:   { <span class="k">"aadhaarNumber"</span>: <span class="s">"XXXX-XXXX-9012"</span> },
+        <span class="k">"responsePayload"</span>:  { <span class="k">"status"</span>: <span class="s">"verified"</span>, <span class="k">"nameMatch"</span>: <span class="n">true</span>, <span class="k">"referenceId"</span>: <span class="s">"AADHAAR-..."</span> },
+        <span class="k">"verifiedAt"</span>:        <span class="s">"2026-05-21T09:00:12.000Z"</span>
+      },
+      {
+        <span class="k">"verificationType"</span>:  <span class="s">"PAN"</span>,
+        <span class="k">"verificationStatus"</span>:<span class="s">"verified"</span>,
+        <span class="k">"requestPayload"</span>:   { <span class="k">"panNumber"</span>: <span class="s">"ABCDE1234F"</span> },
+        <span class="k">"responsePayload"</span>:  { <span class="k">"status"</span>: <span class="s">"verified"</span>, <span class="k">"panStatus"</span>: <span class="s">"active"</span> },
+        <span class="k">"verifiedAt"</span>:        <span class="s">"2026-05-21T09:00:13.600Z"</span>
+      }
+    ]
+  }
+}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ REPORT ENDPOINT ═══════════════════════════════════ -->
+    <section id="report-endpoints">
+      <h2>Report Endpoints</h2>
+      <div class="endpoint" id="report-download">
+        <div class="endpoint-header">
+          <span class="method m-get">GET</span>
+          <span class="endpoint-path">/api/reports/<span class="param">:id</span></span>
+          <span class="auth-required">🔐 Auth Required</span>
+          <span class="endpoint-desc">Generate and download PDF report</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="info-box warn"><span class="ib-icon">⚠️</span><div>Returns <code>400</code> if candidate status is still <code>PENDING</code>. Run verification first.</div></div>
+          <div class="info-box success"><span class="ib-icon">📄</span><div>Response is a binary PDF stream with <code>Content-Type: application/pdf</code> and <code>Content-Disposition: attachment; filename="BGV_Report_John_Doe_1716286400000.pdf"</code></div></div>
+          <div class="code-label">Axios Example (Frontend)</div>
+          <div class="code-block"><span class="c">// Download PDF in browser</span>
+const response = await axios.get(<span class="s">`/api/reports/${candidateId}`</span>, {
+  headers: { <span class="k">Authorization</span>: <span class="s">`Bearer ${token}`</span> },
+  responseType: <span class="s">'blob'</span>
+});
+const url  = window.URL.createObjectURL(new Blob([response.data]));
+const link = document.createElement(<span class="s">'a'</span>);
+link.href  = url;
+link.setAttribute(<span class="s">'download'</span>, <span class="s">'BGV_Report.pdf'</span>);
+document.body.appendChild(link);
+link.click();</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ MOCK ENDPOINTS ═══════════════════════════════════ -->
+    <section id="mock-endpoints">
+      <h2>Mock API Endpoints</h2>
+      <div class="info-box note"><span class="ib-icon">🧪</span><div>These internal mock endpoints simulate third-party Aadhaar and PAN verification APIs. In production, replace with certified providers such as Digio, AuthBridge, or NSDL APIs. No authentication required.</div></div>
+
+      <div class="endpoint" id="mock-aadhaar">
+        <div class="endpoint-header">
+          <span class="method m-post">POST</span>
+          <span class="endpoint-path">/mock-api/aadhaar/verify</span>
+          <span class="endpoint-desc">Simulate Aadhaar verification</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="params-label">Request Body</div>
+          <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Validation</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">aadhaarNumber</td><td class="td-type">string</td><td class="td-desc">Exactly 12 numeric digits</td></tr>
+            </tbody>
+          </table>
+          <div class="code-label">Request</div>
+          <div class="code-block">POST /mock-api/aadhaar/verify
+{ <span class="k">"aadhaarNumber"</span>: <span class="s">"123456789012"</span> }</div>
+          <div class="code-label">Response — Success</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>:    <span class="s">"verified"</span>,
+  <span class="k">"nameMatch"</span>: <span class="n">true</span>,
+  <span class="k">"dobMatch"</span>:  <span class="n">true</span>,
+  <span class="k">"message"</span>:   <span class="s">"Aadhaar verified successfully"</span>
+}</div>
+          <div class="code-label">Response — Failure (invalid format)</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>:    <span class="s">"failed"</span>,
+  <span class="k">"nameMatch"</span>: <span class="n">false</span>,
+  <span class="k">"dobMatch"</span>:  <span class="n">false</span>,
+  <span class="k">"message"</span>:   <span class="s">"Invalid Aadhaar format"</span>
+}</div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="mock-pan">
+        <div class="endpoint-header">
+          <span class="method m-post">POST</span>
+          <span class="endpoint-path">/mock-api/pan/verify</span>
+          <span class="endpoint-desc">Simulate PAN verification</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="params-label">Request Body</div>
+          <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Validation</th></tr></thead>
+            <tbody>
+              <tr><td class="td-name">panNumber</td><td class="td-type">string</td><td class="td-desc">Format: ABCDE1234F — regex <code style="font-family:'JetBrains Mono',monospace">/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/</code></td></tr>
+            </tbody>
+          </table>
+          <div class="code-label">Request</div>
+          <div class="code-block">POST /mock-api/pan/verify
+{ <span class="k">"panNumber"</span>: <span class="s">"ABCDE1234F"</span> }</div>
+          <div class="code-label">Response — Success</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>:    <span class="s">"verified"</span>,
+  <span class="k">"panStatus"</span>: <span class="s">"active"</span>,
+  <span class="k">"message"</span>:   <span class="s">"PAN verified successfully"</span>
+}</div>
+          <div class="code-label">Response — Failure</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>:    <span class="s">"failed"</span>,
+  <span class="k">"panStatus"</span>: <span class="s">"invalid"</span>,
+  <span class="k">"message"</span>:   <span class="s">"Invalid PAN format"</span>
+}</div>
+        </div>
+      </div>
+    </section>
+
+    <p style="font-size:11px;color:var(--dim);text-align:center;padding:32px 0;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;">
+      BGV Platform API Docs · v1.0.0 · Generated 21 May 2026
+    </p>
+
+  </div>
+</div>
+
+<script>
+  // Highlight active sidebar link on scroll
+  const links = document.querySelectorAll('.sidebar-link');
+  const sections = document.querySelectorAll('[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
